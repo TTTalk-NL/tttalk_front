@@ -1,0 +1,16 @@
+---
+description: Best practices for Next.js 16+ App Router projects
+globs: ["app/**/*.tsx", "app/**/*.ts"]
+---
+
+# Next.js 16 App Router Rules
+
+- **Server Components by Default**: Keep components as Server Components unless they strictly require client-side interactivity (hooks, event listeners).
+- **Client Boundaries**: Place `"use client"` at the very top of the file. Move client logic to the leaves of the component tree to maximize server rendering.
+- **Server Actions**: Use Server Actions (`actions.ts`) for data mutations and form submissions.
+- **Async Request APIs**: In Next.js 15/16, APIs like `headers`, `cookies`, `params`, and `searchParams` are asynchronous. ALWAYS `await` them before use.
+  - Example: `const params = await props.params;`
+- **Caching**: Next.js 15+ changes fetch caching defaults to `no-store` (uncached) by default. Be explicit if you need caching (`force-cache` or `next: { revalidate: ... }`).
+- **Image Optimization**: ALWAYS use `next/image`. Configure `remotePatterns` in `next.config.ts` for external domains.
+- **Navigation**: Use `next/link` for client-side navigation.
+- **Metadata**: Use the Metadata API in `layout.tsx` or `page.tsx`.

@@ -1,0 +1,11 @@
+---
+description: Tailwind CSS styling conventions
+globs: ["**/*.tsx"]
+---
+
+# Tailwind CSS Rules
+
+- **Utility First**: Prefer Tailwind utility classes over inline styles or CSS modules.
+- **Conditional Classes**: Use `clsx` (or a `cn` utility) for conditional class names.
+- **Mobile First**: Write mobile styles first (default), then use `md:`, `lg:`, etc., for larger screens.
+- **Consistency**: Use `flex` and `grid` for layouts. Avoid hardcoded arbitrary values (e.g., `w-[123px]`) if a standard utility exists.

@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+# Review Instructions
+
+## Code Quality
+
+- Prefer early returns. It is recommended to throw/return early so we can ensure null-checks and prevent further nesting.
+- Prefer Composition over Prop Drilling. Instead of relying on prop drilling, let's try to take advantage of react children feature.
+- Always use t() for text localization in frontend code; direct text embedding should trigger a warning.
+- Check if there are circular references introduced. We should never allow these.
+- Flag excessive Day.js use in performance-critical code. Functions like `.add`, `.diff`, `.isBefore`, and `.isAfter` are slow, especially in timezone mode. Prefer `.utc()` for better performance. Where possible, replace with native Date and direct `.valueOf()` comparisons for faster execution. Recommend using native methods or Day.js `.utc()` consistently in hot paths like loops.

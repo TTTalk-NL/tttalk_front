@@ -1,0 +1,11 @@
+---
+description: TypeScript coding standards and strictness
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# TypeScript Rules
+
+- **No Any**: Avoid using `any`. Use `unknown` if the type is truly uncertain, or strict types otherwise.
+- **Props Interfaces**: Always define an interface for component props, e.g., `interface Props { ... }`.
+- **Type Inference**: Allow TypeScript to infer return types for simple functions, but explicit return types are preferred for exported functions.
+- **Zod Integration**: When using Zod, derive TypeScript types from the schema using `z.infer<typeof schema>`.
