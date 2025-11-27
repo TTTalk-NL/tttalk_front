@@ -1,0 +1,16 @@
+---
+description: Standards for forms using React Hook Form and Zod
+globs: ["**/*form.tsx", "**/actions.ts", "**/definitions.ts"]
+---
+
+# Form Patterns
+
+- **Stack**: Use `react-hook-form` for state management and `zod` for validation.
+- **Structure**: 
+    - Define Zod schemas and types in `definitions.ts`.
+    - Define Server Actions in `actions.ts`.
+    - Keep the UI component focused on rendering and hook integration.
+- **Validation**:
+    - Client-side: Use `zodResolver` with the schema.
+    - Server-side: Re-validate data in Server Actions using `schema.safeParse()`.
+- **Error Handling**: Map server-side validation errors back to form fields using `setError`.
