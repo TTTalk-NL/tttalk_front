@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
         hostname: "flagcdn.com",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8080",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "192.168.50.204",
+        port: "8080",
+        pathname: "/storage/houses/**",
+      },
     ],
   },
 }
