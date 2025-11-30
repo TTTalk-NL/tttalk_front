@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 
-const PROPERTY_TYPES = ["Apartment", "House", "Villa", "Guesthouse", "Hotel"]
+const PROPERTY_TYPES = ["Apartment", "Dutch homes", "Villa", "Guesthouse"]
 
 export function HouseFilter() {
   const router = useRouter()
