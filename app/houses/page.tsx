@@ -12,6 +12,7 @@ export default async function HousesPage(props: {
   const searchParams = await props.searchParams
 
   const filters: HousesFilter = {
+    search: searchParams?.search as string,
     country: searchParams?.country as string,
     min_price: searchParams?.min_price
       ? Number(searchParams.min_price)
@@ -19,8 +20,17 @@ export default async function HousesPage(props: {
     max_price: searchParams?.max_price
       ? Number(searchParams.max_price)
       : undefined,
+    bedrooms: searchParams?.bedrooms ? Number(searchParams.bedrooms) : undefined,
+    bathrooms: searchParams?.bathrooms
+      ? Number(searchParams.bathrooms)
+      : undefined,
     page: searchParams?.page ? Number(searchParams.page) : 1,
-    // Map other params if needed
+    // Handle property_type which can be string or string[]
+    property_type: searchParams?.property_type
+      ? Array.isArray(searchParams.property_type)
+        ? searchParams.property_type
+        : [searchParams.property_type]
+      : undefined,
   }
 
   // success/message might be undefined if using direct pagination response,

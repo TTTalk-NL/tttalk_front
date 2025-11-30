@@ -20,13 +20,13 @@ export function middleware(request: NextRequest) {
 
     // 2. AUTH ROUTES: If user IS logged in...
     if (token) {
-        // ...and tries to access Login/Register -> Redirect to Dashboard
+        // ...and tries to access Login/Register -> Redirect to Houses
         if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
-            return NextResponse.redirect(new URL("/dashboard", request.url))
+            return NextResponse.redirect(new URL("/houses", request.url))
         }
-        // ...and tries to access Root '/' -> Redirect to Dashboard
+        // ...and tries to access Root '/' -> Redirect to Houses
         if (pathname === "/") {
-            return NextResponse.redirect(new URL("/dashboard", request.url))
+            return NextResponse.redirect(new URL("/houses", request.url))
         }
     }
 

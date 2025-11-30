@@ -46,10 +46,14 @@ export interface HousesResponse {
 }
 
 export interface HousesFilter {
+  search?: string // Combined City or Address
   country?: string
   city?: string
   min_price?: number
   max_price?: number
   guests?: number
+  bedrooms?: number
+  bathrooms?: number
   page?: number
+  property_type?: string[] // Array of selected property types
 }

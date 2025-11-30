@@ -32,7 +32,7 @@ export default function LoginForm() {
     if (result.success) {
       toast.success("Logged in successfully!")
       // Redirect to dashboard or home
-      router.push("/dashboard")
+      router.push("/houses")
     } else if (result.errors) {
       Object.keys(result.errors).forEach((key) => {
         setError(key as keyof LoginPayload, {
