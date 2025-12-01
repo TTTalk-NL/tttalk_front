@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
         port: "8080",
         pathname: "/storage/houses/**",
       },
+      {
+        protocol: "https",
+        hostname: "tttalkupload.s3.eu-north-1.amazonaws.com",
+        pathname: "/**",
+      },
     ],
   },
 }
