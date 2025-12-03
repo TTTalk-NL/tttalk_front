@@ -3,12 +3,14 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
+import { useFilterModal } from "./filter-modal-context"
 
 const PROPERTY_TYPES = ["Apartment", "Dutch homes", "Villa", "Guesthouse"]
 
 export function HouseFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { isOpen, setIsOpen } = useFilterModal()
 
   const [search, setSearch] = useState(searchParams.get("search") || "")
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
@@ -18,6 +20,7 @@ export function HouseFilter() {
   const [minPrice, setMinPrice] = useState(searchParams.get("min_price") || "")
   const [maxPrice, setMaxPrice] = useState(searchParams.get("max_price") || "")
   const [bedrooms, setBedrooms] = useState(searchParams.get("bedrooms") || "1")
+  const [guests, setGuests] = useState(searchParams.get("guests") || "1")
   const [bathrooms, setBathrooms] = useState(
     searchParams.get("bathrooms") || "1",
   )
@@ -25,20 +28,55 @@ export function HouseFilter() {
   // Debounce search effect
   useEffect(() => {
     const timer = setTimeout(() => {
-      const params = new URLSearchParams()
-      if (search) params.set("search", search)
+      const params = new URLSearchParams(searchParams.toString())
+
+      // Update search param
+      if (search) {
+        params.set("search", search)
+      } else {
+        params.delete("search")
+      }
+
+      // Update other filter params
       if (minPrice) params.set("min_price", minPrice)
+      else params.delete("min_price")
+
       if (maxPrice) params.set("max_price", maxPrice)
+      else params.delete("max_price")
+
       if (bedrooms) params.set("bedrooms", bedrooms)
+      else params.delete("bedrooms")
+
+      if (guests) params.set("guests", guests)
+      else params.delete("guests")
+
       if (bathrooms) params.set("bathrooms", bathrooms)
+      else params.delete("bathrooms")
+
+      // Handle property types
+      params.delete("property_type")
       selectedTypes.forEach((type) => {
         params.append("property_type", type)
       })
-      router.push(`/houses?${params.toString()}`)
+
+      // Reset to page 1 when filters change
+      params.set("page", "1")
+
+      router.push(`/houses?${params.toString()}`, { scroll: false })
     }, 500) // 500ms debounce
 
     return () => clearTimeout(timer)
-  }, [search, minPrice, maxPrice, bedrooms, bathrooms, selectedTypes, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    search,
+    minPrice,
+    maxPrice,
+    bedrooms,
+    bathrooms,
+    guests,
+    selectedTypes,
+    router,
+  ])
 
   // Handle handlers...
   const handleTypeChange = (type: string) => {
@@ -60,8 +98,6 @@ export function HouseFilter() {
       setter((val - 1).toString())
     }
   }
-
-  const [isOpen, setIsOpen] = useState(false)
 
   // Prevent body scroll when mobile filters are open
   useEffect(() => {
@@ -143,12 +179,40 @@ export function HouseFilter() {
 
       {/* 3. Bedrooms and Bathrooms */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">
-          Bedrooms and Bathrooms
-        </h3>
+        <h3 className="font-medium text-gray-900 mb-3">Rooms and Guests</h3>
         <div className="space-y-4">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Bedrooms</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-gray-600 min-w-[80px]">Guests</label>
+            <div className="flex items-center w-fit">
+              <button
+                type="button"
+                className="w-10 h-10 border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => handleDecrement(guests, setGuests)}
+                disabled={guests === "1"}
+              >
+                -
+              </button>
+              <input
+                type="text"
+                placeholder="Any"
+                readOnly
+                className="w-12 h-10 border-y border-gray-300 text-center focus:outline-none text-sm cursor-default"
+                value={guests}
+              />
+              <button
+                type="button"
+                className="w-10 h-10 border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => handleIncrement(guests, setGuests)}
+                disabled={(parseInt(guests) || 0) >= 20}
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-gray-600 min-w-[80px]">
+              Bedrooms
+            </label>
             <div className="flex items-center w-fit">
               <button
                 type="button"
@@ -162,7 +226,7 @@ export function HouseFilter() {
                 type="text"
                 placeholder="Any"
                 readOnly
-                className="w-20 h-10 border-y border-gray-300 text-center focus:outline-none text-sm cursor-default"
+                className="w-12 h-10 border-y border-gray-300 text-center focus:outline-none text-sm cursor-default"
                 value={bedrooms}
               />
               <button
@@ -175,8 +239,8 @@ export function HouseFilter() {
               </button>
             </div>
           </div>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-gray-600 min-w-[80px]">
               Bathrooms
             </label>
             <div className="flex items-center w-fit">
@@ -192,7 +256,7 @@ export function HouseFilter() {
                 type="text"
                 placeholder="Any"
                 readOnly
-                className="w-20 h-10 border-y border-gray-300 text-center focus:outline-none text-sm cursor-default"
+                className="w-12 h-10 border-y border-gray-300 text-center focus:outline-none text-sm cursor-default"
                 value={bathrooms}
               />
               <button
@@ -234,30 +298,6 @@ export function HouseFilter() {
 
   return (
     <>
-      {/* Mobile Trigger Button */}
-      <div className="lg:hidden mb-4">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 transition-colors w-full justify-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-            />
-          </svg>
-          Filters
-        </button>
-      </div>
-
       {/* Mobile Modal (Portal) */}
       {isOpen &&
         createPortal(
@@ -291,7 +331,7 @@ export function HouseFilter() {
         )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block bg-white rounded-lg border border-gray-200 h-fit p-4">
+      <div className="hidden lg:block bg-white rounded-lg border border-gray-200 h-fit p-4 overflow-y-auto max-h-[calc(100vh-120px)]">
         {filterContent}
       </div>
     </>
