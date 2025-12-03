@@ -5,11 +5,19 @@ import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { logoutUser } from "../login/actions"
+import { useFilterModal } from "./filter-modal-context"
 
-export function Header({ showProfile = false }: { showProfile?: boolean }) {
+export function Header({
+  showProfile = false,
+  showFilters = false,
+}: {
+  showProfile?: boolean
+  showFilters?: boolean
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
+  const filterModal = useFilterModal()
 
   const handleLogout = async () => {
     await logoutUser()
@@ -41,40 +49,64 @@ export function Header({ showProfile = false }: { showProfile?: boolean }) {
           />
         </Link>
 
-        {showProfile && (
-          <div className="relative mr-10 md:mr-0" ref={menuRef}>
+        <div className="flex items-center gap-2 mr-4 md:mr-0">
+          {showFilters && filterModal && (
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 focus:outline-none"
+              onClick={() => filterModal?.setIsOpen(true)}
+              className="lg:hidden flex items-center justify-center px-4 py-2 bg-whitehouses/g67Trn4oAHain3jGwUlm1FLVUt9joEjAkdZ9Mhi2.jpg"
             >
               <svg
-                className="w-6 h-6 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 text-gray-700"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                ></path>
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                />
               </svg>
             </button>
+          )}
 
-            {isOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-gray-300 ring-opacity-5 z-50">
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          {showProfile && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-center focus:outline-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-700"
                 >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                  />
+                </svg>
+              </button>
+
+              {isOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-gray-300 ring-opacity-5 z-50">
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

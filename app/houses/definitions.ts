@@ -56,4 +56,6 @@ export interface HousesFilter {
   bathrooms?: number
   page?: number
   property_type?: string[] // Array of selected property types
+  start_date?: string
+  end_date?: string
 }
