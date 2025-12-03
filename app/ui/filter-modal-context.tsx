@@ -23,6 +23,12 @@ export function FilterModalProvider({ children }: { children: ReactNode }) {
 
 export function useFilterModal() {
   const context = useContext(FilterModalContext)
+  if (context === undefined) {
+    throw new Error("useFilterModal must be used within a FilterModalProvider")
+  }
   return context
 }
 
+export function useFilterModalSafe() {
+  return useContext(FilterModalContext)
+}

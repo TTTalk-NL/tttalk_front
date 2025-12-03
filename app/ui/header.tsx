@@ -5,7 +5,7 @@ import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { logoutUser } from "../login/actions"
-import { useFilterModal } from "./filter-modal-context"
+import { useFilterModalSafe } from "./filter-modal-context"
 
 export function Header({
   showProfile = false,
@@ -17,7 +17,7 @@ export function Header({
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
-  const filterModal = useFilterModal()
+  const filterModal = useFilterModalSafe()
 
   const handleLogout = async () => {
     await logoutUser()
