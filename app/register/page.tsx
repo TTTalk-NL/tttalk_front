@@ -27,7 +27,6 @@ async function getCountries() {
       emoji: c.emoji,
     }))
 
-    console.log("[Server] Countries fetched:", countries.length || 0, "items")
     return countries
   } catch (error) {
     console.error("[Server] Failed to fetch countries", error)
@@ -37,6 +36,5 @@ async function getCountries() {
 
 export default async function Page() {
   const countries = await getCountries()
-  console.log("[Client] Countries:", countries)
   return <RegisterForm countries={countries} />
 }
