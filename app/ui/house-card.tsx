@@ -62,7 +62,6 @@ export function HouseCard({ house }: HouseCardProps) {
     e.preventDefault()
     e.stopPropagation()
     setIsFavorite((prev) => !prev)
-    console.log("Toggled favorite for house", house.id)
   }
 
   return (

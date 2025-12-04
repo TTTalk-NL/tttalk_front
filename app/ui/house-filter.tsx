@@ -62,7 +62,13 @@ export function HouseFilter() {
       // Reset to page 1 when filters change
       params.set("page", "1")
 
-      router.push(`/houses?${params.toString()}`, { scroll: false })
+      const newUrl = `/houses?${params.toString()}`
+      const currentUrl = `/houses?${searchParams.toString()}`
+
+      // Only update if URL actually changed
+      if (newUrl !== currentUrl) {
+        router.push(newUrl, { scroll: false })
+      }
     }, 500) // 500ms debounce
 
     return () => clearTimeout(timer)
@@ -97,6 +103,15 @@ export function HouseFilter() {
     if (val > 1) {
       setter((val - 1).toString())
     }
+  }
+
+  const handlePriceChange = (
+    value: string,
+    setter: (value: string) => void,
+  ) => {
+    // Only allow digits (positive numbers)
+    const numericValue = value.replace(/[^0-9]/g, "")
+    setter(numericValue)
   }
 
   // Prevent body scroll when mobile filters are open
@@ -274,23 +289,35 @@ export function HouseFilter() {
 
       {/* Price Range (Kept but styled) */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Price Range</h3>
+        <h3 className="font-medium text-gray-900 mb-3">Price Range (EUR)</h3>
         <div className="flex gap-2 items-center">
-          <input
-            type="number"
-            placeholder="Min"
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-primary text-sm"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
+          <div className="relative flex-1 lg:flex-1 max-w-[100px] lg:max-w-none">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Min"
+              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              value={minPrice}
+              onChange={(e) => handlePriceChange(e.target.value, setMinPrice)}
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+              €
+            </span>
+          </div>
           <span className="text-gray-400">-</span>
-          <input
-            type="number"
-            placeholder="Max"
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-primary text-sm"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
+          <div className="relative flex-1 lg:flex-1 max-w-[100px] lg:max-w-none">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Max"
+              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              value={maxPrice}
+              onChange={(e) => handlePriceChange(e.target.value, setMaxPrice)}
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+              €
+            </span>
+          </div>
         </div>
       </div>
     </div>

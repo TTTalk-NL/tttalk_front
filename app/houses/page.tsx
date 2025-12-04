@@ -57,7 +57,7 @@ export default async function HousesPage(props: {
           <div className="flex flex-col lg:grid lg:grid-cols-[250px_1fr] gap-8">
             {/* Filters Section */}
             <aside className="w-full">
-              <div className="sticky top-24">
+              <div className="sticky top-24 lg:top-[calc(4rem+1.5rem)]">
                 <Suspense fallback={<div>Loading filters...</div>}>
                   <HouseFilter />
                 </Suspense>

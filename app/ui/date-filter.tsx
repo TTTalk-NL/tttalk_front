@@ -1,21 +1,27 @@
 "use client"
 
+import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
+import { format, parseISO, isValid, addDays } from "date-fns"
+import { Calendar as CalendarIcon, ArrowRight } from "lucide-react"
 
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+
+// Helper to ensure we always work with YYYY-MM-DD strings for the URL
 function formatDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
+  return format(date, "yyyy-MM-dd")
 }
 
 function getDefaultDates() {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  const checkOut = new Date(tomorrow)
-  checkOut.setDate(checkOut.getDate() + 3)
+  const tomorrow = addDays(new Date(), 1)
+  const checkOut = addDays(tomorrow, 3)
 
   return {
     startDate: formatDate(tomorrow),
@@ -28,12 +34,17 @@ export function DateFilter() {
   const searchParams = useSearchParams()
 
   const defaultDates = useMemo(() => getDefaultDates(), [])
-  const [startDate, setStartDate] = useState(
+
+  // State holds string values "YYYY-MM-DD"
+  const [startDate, setStartDate] = useState<string>(
     searchParams.get("start_date") || defaultDates.startDate,
   )
-  const [endDate, setEndDate] = useState(
+  const [endDate, setEndDate] = useState<string>(
     searchParams.get("end_date") || defaultDates.endDate,
   )
+
+  const [isStartOpen, setIsStartOpen] = useState(false)
+  const [isEndOpen, setIsEndOpen] = useState(false)
 
   // Initialize URL with default dates if not present
   useEffect(() => {
@@ -46,9 +57,9 @@ export function DateFilter() {
       if (!hasEndDate) params.set("end_date", defaultDates.endDate)
       router.replace(`/houses?${params.toString()}`, { scroll: false })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sync state to URL with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
@@ -58,92 +69,143 @@ export function DateFilter() {
       if (endDate) params.set("end_date", endDate)
       else params.delete("end_date")
 
-      router.push(`/houses?${params.toString()}`, { scroll: false })
+      const newUrl = `/houses?${params.toString()}`
+      const currentStartDate = searchParams.get("start_date")
+      const currentEndDate = searchParams.get("end_date")
+
+      // Only update if dates actually changed
+      if (startDate !== currentStartDate || endDate !== currentEndDate) {
+        router.push(newUrl, { scroll: false })
+      }
     }, 500)
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate, router])
 
+  // Helper to convert string state to Date object for the Calendar component
+  const getDateObject = (dateString: string) => {
+    const date = parseISO(dateString)
+    return isValid(date) ? date : undefined
+  }
+
   return (
-    <>
-      <div className="flex items-center gap-2 sm:gap-3 bg-white px-4 py-2 sm:py-3 rounded-lg border border-gray-200 shadow-md hover:border-primary hover:shadow-lg transition-all flex-1 sm:flex-initial min-w-0">
-        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/10 shrink-0">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-4 h-4 sm:w-5 sm:h-5 text-primary"
+    <div className="flex items-center gap-2 sm:gap-3 w-full max-w-2xl">
+      {/* --- START DATE PICKER --- */}
+      <Popover open={isStartOpen} onOpenChange={setIsStartOpen}>
+        <PopoverTrigger asChild>
+          <div
+            className={cn(
+              "flex items-center gap-2 sm:gap-3 bg-white px-4 py-2 sm:py-3 rounded-2xl border transition-all cursor-pointer flex-1 min-w-0 group",
+              isStartOpen
+                ? "border-primary ring-2 ring-primary/20 shadow-lg"
+                : "border-gray-200 shadow-sm hover:border-primary/50 hover:shadow-md",
+            )}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-            />
-          </svg>
-        </div>
-        <div className="flex flex-col min-w-0">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">
-            Check-in
-          </label>
-          <input
-            type="date"
-            className="text-xs sm:text-sm font-medium text-gray-900 bg-transparent border-none focus:outline-none cursor-pointer"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center shrink-0">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400"
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+              <CalendarIcon className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                Check-in
+              </span>
+              <span className="text-sm font-semibold text-gray-900 truncate">
+                {startDate
+                  ? format(parseISO(startDate), "MMM dd, yyyy")
+                  : "Select Date"}
+              </span>
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-auto p-0 rounded-2xl border-none shadow-xl"
+          align="start"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
+          <Calendar
+            mode="single"
+            selected={getDateObject(startDate)}
+            onSelect={(date) => {
+              if (date) {
+                setStartDate(formatDate(date))
+                setIsStartOpen(false) // Close popover after selection
+                // Optional: Auto-open end date if it's before start date
+                if (endDate && date > parseISO(endDate)) {
+                  setIsEndOpen(true)
+                }
+              }
+            }}
+            disabled={(date) =>
+              date < new Date(new Date().setHours(0, 0, 0, 0))
+            }
+            initialFocus
+            className="rounded-2xl border border-primary/20 p-4"
+            classNames={{
+              day_selected:
+                "bg-primary text-white hover:bg-primary/90 focus:bg-primary/90",
+              day_today: "bg-primary/10 text-primary",
+            }}
           />
-        </svg>
+        </PopoverContent>
+      </Popover>
+
+      {/* --- ARROW ICON --- */}
+      <div className="flex items-center shrink-0 text-gray-300">
+        <ArrowRight className="w-5 h-5" />
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 bg-white px-4 py-2 sm:py-3 rounded-lg border border-gray-200 shadow-md hover:border-primary hover:shadow-lg transition-all flex-1 sm:flex-initial min-w-0">
-        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/10 shrink-0">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-4 h-4 sm:w-5 sm:h-5 text-primary"
+      {/* --- END DATE PICKER --- */}
+      <Popover open={isEndOpen} onOpenChange={setIsEndOpen}>
+        <PopoverTrigger asChild>
+          <div
+            className={cn(
+              "flex items-center gap-2 sm:gap-3 bg-white px-4 py-2 sm:py-3 rounded-2xl border transition-all cursor-pointer flex-1 min-w-0 group",
+              isEndOpen
+                ? "border-primary ring-2 ring-primary/20 shadow-lg"
+                : "border-gray-200 shadow-sm hover:border-primary/50 hover:shadow-md",
+            )}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-            />
-          </svg>
-        </div>
-        <div className="flex flex-col min-w-0">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">
-            Check-out
-          </label>
-          <input
-            type="date"
-            className="text-xs sm:text-sm font-medium text-gray-900 bg-transparent border-none focus:outline-none cursor-pointer"
-            value={endDate}
-            min={startDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+              <CalendarIcon className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                Check-out
+              </span>
+              <span className="text-sm font-semibold text-gray-900 truncate">
+                {endDate
+                  ? format(parseISO(endDate), "MMM dd, yyyy")
+                  : "Select Date"}
+              </span>
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-auto p-0 rounded-2xl border-none shadow-xl"
+          align="end"
+        >
+          <Calendar
+            mode="single"
+            selected={getDateObject(endDate)}
+            onSelect={(date) => {
+              if (date) {
+                setEndDate(formatDate(date))
+                setIsEndOpen(false)
+              }
+            }}
+            // Disable dates before start date
+            disabled={(date) =>
+              startDate ? date < parseISO(startDate) : date < new Date()
+            }
+            initialFocus
+            className="rounded-2xl border border-primary/20 p-4"
+            classNames={{
+              day_selected:
+                "bg-primary text-white hover:bg-primary/90 focus:bg-primary/90",
+              day_today: "bg-primary/10 text-primary",
+            }}
           />
-        </div>
-      </div>
-    </>
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
