@@ -6,10 +6,43 @@ export interface HouseImage {
   image_url?: string // Added based on payload
 }
 
+export interface HouseOwner {
+  id: number
+  name: string
+  email: string
+  email_verified_at: string | null
+  created_at: string
+  updated_at: string
+  calling_code: string | null
+  phone: string | null
+  country: string | null
+  city: string | null
+  address: string | null
+  photo: string | null
+  stripe_account_id: string | null
+  photo_url: string | null
+}
+
+export interface Amenity {
+  id: number
+  created_by: number | null
+  name: string
+  description: string | null
+  created_at: string | null
+  updated_at: string | null
+  icon_url: string | null
+  pivot?: {
+    house_id: number
+    amenity_id: number
+  }
+}
+
 export interface House {
   id: number
+  created_by?: HouseOwner
   title: string
   description: string
+  property_type: string
   country: string
   city: string
   address: string
@@ -19,6 +52,7 @@ export interface House {
   beds: number
   bathrooms: number
   images: HouseImage[]
+  amenities?: Amenity[]
 }
 
 // New Pagination Interface based on Laravel's standard pagination

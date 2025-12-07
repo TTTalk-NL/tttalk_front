@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState, MouseEvent, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { House } from "../houses/definitions"
 
 interface HouseCardProps {
@@ -12,6 +13,7 @@ interface HouseCardProps {
 export function HouseCard({ house }: HouseCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [hostname, setHostname] = useState("")
+  const searchParams = useSearchParams()
 
   /**
    * Backend base URL for images.
@@ -64,9 +66,25 @@ export function HouseCard({ house }: HouseCardProps) {
     setIsFavorite((prev) => !prev)
   }
 
+  // Build URL with date parameters if they exist
+  const buildHouseUrl = () => {
+    const startDate = searchParams.get("start_date")
+    const endDate = searchParams.get("end_date")
+    const baseUrl = `/houses/${house.id}`
+
+    if (startDate || endDate) {
+      const params = new URLSearchParams()
+      if (startDate) params.set("start_date", startDate)
+      if (endDate) params.set("end_date", endDate)
+      return `${baseUrl}?${params.toString()}`
+    }
+
+    return baseUrl
+  }
+
   return (
     <Link
-      href={`/houses/${house.id}`}
+      href={buildHouseUrl()}
       className="group block rounded-xl bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
     >
       <div className="relative aspect-4/3 overflow-hidden rounded-lg bg-gray-100">
