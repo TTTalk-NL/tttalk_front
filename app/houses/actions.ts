@@ -1,7 +1,8 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { HousesResponse, HousesFilter } from "./definitions"
+import { HousesResponse, HousesFilter, House } from "./definitions"
+import { ActivitiesResponse } from "./activities-definitions"
 
 export async function getHouses(
   filters?: HousesFilter,
@@ -98,5 +99,82 @@ export async function getHouses(
       success: false,
       message: "Failed to fetch houses",
     }
+  }
+}
+
+export async function getHouseById(id: number): Promise<House | null> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api"
+
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get("token")?.value
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const response = await fetch(`${baseUrl}/traveller/houses/${id}`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      console.error(`Error fetching house: ${response.status}`)
+      return null
+    }
+
+    const data = await response.json()
+    return data.data || data
+  } catch (error) {
+    console.error("Fetch House Error:", error)
+    return null
+  }
+}
+
+export async function getActivitiesByUserId(
+  userId: number,
+): Promise<ActivitiesResponse | null> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api"
+
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get("token")?.value
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const response = await fetch(
+      `${baseUrl}/traveller/activities/user/${userId}`,
+      {
+        method: "GET",
+        headers,
+        cache: "no-store",
+      },
+    )
+
+    if (!response.ok) {
+      console.error(`Error fetching activities: ${response.status}`)
+      return null
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error("Fetch Activities Error:", error)
+    return null
   }
 }
