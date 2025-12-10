@@ -9,6 +9,7 @@ import { ImageCarousel } from "./image-carousel"
 import { ActivitiesSection } from "./activities-section"
 import { AboutSection } from "./about-section"
 import { OffersSection } from "./offers-section"
+import { FavoriteButton } from "./favorite-button"
 import { ArrowLeft, MapPin, Star } from "lucide-react"
 
 export default async function HouseDetailsPage({
@@ -76,7 +77,6 @@ export default async function HouseDetailsPage({
            The Right Column will now stretch to match the combined height of the Left Column items.
         */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          
           {/* 1. IMAGES (Left Top on Desktop) */}
           <div className="lg:col-start-1">
             <ImageCarousel
@@ -94,9 +94,12 @@ export default async function HouseDetailsPage({
             <div className="sticky top-24 space-y-8">
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden">
                 <div className="px-4 sm:px-8 py-3 sm:py-4 border-b border-gray-200">
-                  <h1 className="text-xl font-bold text-gray-900 mb-2">
-                    {house.title}
-                  </h1>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h1 className="text-xl font-bold text-gray-900 flex-1">
+                      {house.title}
+                    </h1>
+                    <FavoriteButton />
+                  </div>
 
                   <div className="flex items-center gap-1.5 text-gray-600 mb-2">
                     <MapPin className="w-3.5 h-3.5" />
@@ -163,7 +166,6 @@ export default async function HouseDetailsPage({
           <div className="lg:col-start-1">
             <AboutSection description={house.description || ""} />
           </div>
-          
         </div>
       </main>
     </div>
