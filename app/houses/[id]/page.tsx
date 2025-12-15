@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { getHouseById, getActivitiesByUserId } from "../actions"
 import { Header } from "@/app/ui/header"
+import { BackLink } from "@/app/ui/back-link"
 import { DatePicker } from "./date-picker"
 import { PriceDisplay } from "./price-display"
 import { GuestsSelector } from "./guests-selector"
@@ -15,7 +15,7 @@ import { ActivityCartProvider } from "./activity-cart-context"
 import { ActivityModalProvider } from "./activity-modal-context"
 import { ActivityModalWrapper } from "./activity-modal-wrapper"
 import { BookingActivitiesList } from "./booking-activities-list"
-import { ArrowLeft, MapPin, Star } from "lucide-react"
+import { MapPin, Star } from "lucide-react"
 
 export default async function HouseDetailsPage({
   params,
@@ -72,13 +72,7 @@ export default async function HouseDetailsPage({
           <Header showProfile={true} showFilters={false} />
 
           <main className="grow container mx-auto px-4 py-6 sm:py-8">
-            <Link
-              href="/houses"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition-colors mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to listings</span>
-            </Link>
+            <BackLink className="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition-colors mb-6" />
 
             {/* FIX 1: Removed `items-start`. 
            This allows the Grid Items to stretch to the full height of the row(s).

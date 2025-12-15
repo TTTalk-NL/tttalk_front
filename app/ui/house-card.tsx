@@ -66,20 +66,35 @@ export function HouseCard({ house }: HouseCardProps) {
     setIsFavorite((prev) => !prev)
   }
 
-  // Build URL with date parameters if they exist
+  // Build URL preserving all filter parameters
   const buildHouseUrl = () => {
-    const startDate = searchParams.get("start_date")
-    const endDate = searchParams.get("end_date")
     const baseUrl = `/houses/${house.id}`
+    const params = new URLSearchParams()
 
-    if (startDate || endDate) {
-      const params = new URLSearchParams()
-      if (startDate) params.set("start_date", startDate)
-      if (endDate) params.set("end_date", endDate)
-      return `${baseUrl}?${params.toString()}`
-    }
+    // Preserve all filter params from the current URL
+    const filterParams = [
+      "search",
+      "min_price",
+      "max_price",
+      "bedrooms",
+      "guests",
+      "bathrooms",
+      "start_date",
+      "end_date",
+      "property_type",
+    ]
 
-    return baseUrl
+    filterParams.forEach((param) => {
+      const values = searchParams.getAll(param)
+      if (values.length > 0) {
+        values.forEach((value) => {
+          params.append(param, value)
+        })
+      }
+    })
+
+    const queryString = params.toString()
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl
   }
 
   return (
