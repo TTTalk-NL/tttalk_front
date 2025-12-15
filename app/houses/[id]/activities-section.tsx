@@ -3,13 +3,19 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Activity } from "../activities-definitions"
+import { useActivityModal } from "./activity-modal-context"
 
 interface ActivitiesSectionProps {
   activities: Activity[]
+  backendUrl?: string
 }
 
-export function ActivitiesSection({ activities }: ActivitiesSectionProps) {
+export function ActivitiesSection({
+  activities,
+  backendUrl = "http://localhost:8080",
+}: ActivitiesSectionProps) {
   const [showAll, setShowAll] = useState(false)
+  const { openModal } = useActivityModal()
   // Track which items should be visible (for animation)
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
 
@@ -60,6 +66,7 @@ export function ActivitiesSection({ activities }: ActivitiesSectionProps) {
             return (
               <div
                 key={activity.id}
+                onClick={() => openModal(activity)}
                 className="relative w-full rounded-lg overflow-hidden bg-gray-100 group cursor-pointer m-0 transition-all duration-500 ease-out"
                 style={{
                   aspectRatio: "4/3",
