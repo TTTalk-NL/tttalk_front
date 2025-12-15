@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { useFilterModal } from "./filter-modal-context"
 
@@ -25,35 +25,184 @@ export function HouseFilter() {
     searchParams.get("bathrooms") || "1",
   )
 
-  // Debounce search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
+  const isInitialMount = useRef(true)
+  const isUpdatingFromUrl = useRef(false)
+  const lastUrlParams = useRef<string>("")
+  const lastFilterState = useRef({
+    search,
+    minPrice,
+    maxPrice,
+    bedrooms,
+    bathrooms,
+    guests,
+    selectedTypes: selectedTypes.join(","),
+  })
 
-      // Update search param
+  // Sync state from URL when URL changes (e.g., when navigating back)
+  useEffect(() => {
+    const currentUrlParams = searchParams.toString()
+
+    // Skip if URL hasn't actually changed
+    if (currentUrlParams === lastUrlParams.current) {
+      return
+    }
+
+    // This is a URL change from external source (back button, direct navigation)
+    // Update lastUrlParams first to prevent re-triggering
+    lastUrlParams.current = currentUrlParams
+
+    const urlSearch = searchParams.get("search") || ""
+    const urlMinPrice = searchParams.get("min_price") || ""
+    const urlMaxPrice = searchParams.get("max_price") || ""
+    const urlBedrooms = searchParams.get("bedrooms") || "1"
+    const urlGuests = searchParams.get("guests") || "1"
+    const urlBathrooms = searchParams.get("bathrooms") || "1"
+    const urlPropertyTypes = searchParams.getAll("property_type")
+
+    // Only update state if values differ, and set flag to prevent URL update loop
+    let hasChanges = false
+    if (urlSearch !== search) {
+      hasChanges = true
+      setSearch(urlSearch)
+    }
+    if (urlMinPrice !== minPrice) {
+      hasChanges = true
+      setMinPrice(urlMinPrice)
+    }
+    if (urlMaxPrice !== maxPrice) {
+      hasChanges = true
+      setMaxPrice(urlMaxPrice)
+    }
+    if (urlBedrooms !== bedrooms) {
+      hasChanges = true
+      setBedrooms(urlBedrooms)
+    }
+    if (urlGuests !== guests) {
+      hasChanges = true
+      setGuests(urlGuests)
+    }
+    if (urlBathrooms !== bathrooms) {
+      hasChanges = true
+      setBathrooms(urlBathrooms)
+    }
+    if (
+      urlPropertyTypes.length !== selectedTypes.length ||
+      !urlPropertyTypes.every((type) => selectedTypes.includes(type))
+    ) {
+      hasChanges = true
+      setSelectedTypes(urlPropertyTypes)
+    }
+
+    // Set flag only if we made changes, to prevent URL update loop
+    if (hasChanges) {
+      isUpdatingFromUrl.current = true
+      // Reset flag after state updates complete
+      setTimeout(() => {
+        isUpdatingFromUrl.current = false
+      }, 200)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  // Update URL when filters change
+  useEffect(() => {
+    // Skip if we're updating from URL to prevent loops
+    if (isUpdatingFromUrl.current) {
+      return
+    }
+
+    // On initial mount, just sync lastUrlParams and mark as done
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      lastUrlParams.current = searchParams.toString()
+      lastFilterState.current = {
+        search,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        guests,
+        selectedTypes: selectedTypes.join(","),
+      }
+      return
+    }
+
+    const timer = setTimeout(() => {
+      // Check if filters actually changed (not just page)
+      const currentFilterState = {
+        search,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        guests,
+        selectedTypes: selectedTypes.join(","),
+      }
+
+      const filtersChanged =
+        currentFilterState.search !== lastFilterState.current.search ||
+        currentFilterState.minPrice !== lastFilterState.current.minPrice ||
+        currentFilterState.maxPrice !== lastFilterState.current.maxPrice ||
+        currentFilterState.bedrooms !== lastFilterState.current.bedrooms ||
+        currentFilterState.bathrooms !== lastFilterState.current.bathrooms ||
+        currentFilterState.guests !== lastFilterState.current.guests ||
+        currentFilterState.selectedTypes !==
+          lastFilterState.current.selectedTypes
+
+      // Only update URL if filters actually changed
+      if (!filtersChanged) {
+        return
+      }
+
+      // Start with existing params to preserve everything (dates, etc.)
+      // We intentionally don't include searchParams in dependencies to avoid
+      // resetting page on pagination clicks. We only need dates from it.
+      const params = new URLSearchParams()
+
+      // Preserve dates from current URL (only non-filter params we care about)
+      const startDate = searchParams.get("start_date")
+      const endDate = searchParams.get("end_date")
+      if (startDate) params.set("start_date", startDate)
+      if (endDate) params.set("end_date", endDate)
+
+      // Update filter params
       if (search) {
         params.set("search", search)
       } else {
         params.delete("search")
       }
 
-      // Update other filter params
-      if (minPrice) params.set("min_price", minPrice)
-      else params.delete("min_price")
+      if (minPrice) {
+        params.set("min_price", minPrice)
+      } else {
+        params.delete("min_price")
+      }
 
-      if (maxPrice) params.set("max_price", maxPrice)
-      else params.delete("max_price")
+      if (maxPrice) {
+        params.set("max_price", maxPrice)
+      } else {
+        params.delete("max_price")
+      }
 
-      if (bedrooms) params.set("bedrooms", bedrooms)
-      else params.delete("bedrooms")
+      if (bedrooms && bedrooms !== "1") {
+        params.set("bedrooms", bedrooms)
+      } else {
+        params.delete("bedrooms")
+      }
 
-      if (guests) params.set("guests", guests)
-      else params.delete("guests")
+      if (guests && guests !== "1") {
+        params.set("guests", guests)
+      } else {
+        params.delete("guests")
+      }
 
-      if (bathrooms) params.set("bathrooms", bathrooms)
-      else params.delete("bathrooms")
+      if (bathrooms && bathrooms !== "1") {
+        params.set("bathrooms", bathrooms)
+      } else {
+        params.delete("bathrooms")
+      }
 
-      // Handle property types
+      // Update property types - remove all first, then add selected ones
       params.delete("property_type")
       selectedTypes.forEach((type) => {
         params.append("property_type", type)
@@ -61,17 +210,21 @@ export function HouseFilter() {
 
       // Reset to page 1 when filters change
       params.set("page", "1")
+      lastFilterState.current = currentFilterState
 
-      const newUrl = `/houses?${params.toString()}`
-      const currentUrl = `/houses?${searchParams.toString()}`
+      const newParamsString = params.toString()
 
       // Only update if URL actually changed
-      if (newUrl !== currentUrl) {
-        router.push(newUrl, { scroll: false })
+      if (newParamsString !== searchParams.toString()) {
+        lastUrlParams.current = newParamsString
+        router.push(`/houses?${newParamsString}`, { scroll: false })
       }
-    }, 500) // 500ms debounce
+    }, 300) // 300ms debounce
 
     return () => clearTimeout(timer)
+    // searchParams is intentionally omitted from dependencies.
+    // We only use it to read dates, and including it would cause the effect
+    // to run on every URL change (including pagination), resetting page to 1.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     search,

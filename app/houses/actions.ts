@@ -178,3 +178,105 @@ export async function getActivitiesByUserId(
     return null
   }
 }
+
+export async function addFavorite(houseId: number): Promise<{
+  success: boolean
+  message?: string
+}> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api"
+
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get("token")?.value
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const response = await fetch(
+      `${baseUrl}/traveller/houses/${houseId}/favorite`,
+      {
+        method: "POST",
+        headers,
+        cache: "no-store",
+      },
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        message: errorData.message || "Failed to add favorite",
+      }
+    }
+
+    const data = await response.json()
+    return {
+      success: true,
+      message: data.message || "House added to favorites successfully",
+    }
+  } catch (error) {
+    console.error("Add Favorite Error:", error)
+    return {
+      success: false,
+      message: "An error occurred while adding the house to favorites",
+    }
+  }
+}
+
+export async function removeFavorite(houseId: number): Promise<{
+  success: boolean
+  message?: string
+}> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api"
+
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get("token")?.value
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const response = await fetch(
+      `${baseUrl}/traveller/houses/${houseId}/unfavorite`,
+      {
+        method: "POST",
+        headers,
+        cache: "no-store",
+      },
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        message: errorData.message || "Failed to remove favorite",
+      }
+    }
+
+    const data = await response.json()
+    return {
+      success: true,
+      message: data.message || "House removed from favorites successfully",
+    }
+  } catch (error) {
+    console.error("Remove Favorite Error:", error)
+    return {
+      success: false,
+      message: "An error occurred while removing the house from favorites",
+    }
+  }
+}
