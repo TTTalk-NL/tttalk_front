@@ -65,7 +65,7 @@ export default async function HouseDetailsPage({
   const activities = activitiesResponse?.data || []
 
   return (
-    <ActivityCartProvider>
+    <ActivityCartProvider key={houseId} houseId={houseId}>
       <ActivityModalProvider>
         <div className="min-h-screen flex flex-col bg-gray-50">
           <ActivityModalWrapper backendUrl={BACKEND} />
