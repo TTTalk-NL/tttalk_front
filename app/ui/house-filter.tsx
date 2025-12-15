@@ -28,6 +28,15 @@ export function HouseFilter() {
   const isInitialMount = useRef(true)
   const isUpdatingFromUrl = useRef(false)
   const lastUrlParams = useRef<string>("")
+  const lastFilterState = useRef({
+    search,
+    minPrice,
+    maxPrice,
+    bedrooms,
+    bathrooms,
+    guests,
+    selectedTypes: selectedTypes.join(","),
+  })
 
   // Sync state from URL when URL changes (e.g., when navigating back)
   useEffect(() => {
@@ -106,12 +115,55 @@ export function HouseFilter() {
     if (isInitialMount.current) {
       isInitialMount.current = false
       lastUrlParams.current = searchParams.toString()
+      lastFilterState.current = {
+        search,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        guests,
+        selectedTypes: selectedTypes.join(","),
+      }
       return
     }
 
     const timer = setTimeout(() => {
-      // Start with existing params to preserve everything
-      const params = new URLSearchParams(searchParams.toString())
+      // Check if filters actually changed (not just page)
+      const currentFilterState = {
+        search,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        guests,
+        selectedTypes: selectedTypes.join(","),
+      }
+
+      const filtersChanged =
+        currentFilterState.search !== lastFilterState.current.search ||
+        currentFilterState.minPrice !== lastFilterState.current.minPrice ||
+        currentFilterState.maxPrice !== lastFilterState.current.maxPrice ||
+        currentFilterState.bedrooms !== lastFilterState.current.bedrooms ||
+        currentFilterState.bathrooms !== lastFilterState.current.bathrooms ||
+        currentFilterState.guests !== lastFilterState.current.guests ||
+        currentFilterState.selectedTypes !==
+          lastFilterState.current.selectedTypes
+
+      // Only update URL if filters actually changed
+      if (!filtersChanged) {
+        return
+      }
+
+      // Start with existing params to preserve everything (dates, etc.)
+      // We intentionally don't include searchParams in dependencies to avoid
+      // resetting page on pagination clicks. We only need dates from it.
+      const params = new URLSearchParams()
+
+      // Preserve dates from current URL (only non-filter params we care about)
+      const startDate = searchParams.get("start_date")
+      const endDate = searchParams.get("end_date")
+      if (startDate) params.set("start_date", startDate)
+      if (endDate) params.set("end_date", endDate)
 
       // Update filter params
       if (search) {
@@ -158,6 +210,7 @@ export function HouseFilter() {
 
       // Reset to page 1 when filters change
       params.set("page", "1")
+      lastFilterState.current = currentFilterState
 
       const newParamsString = params.toString()
 
@@ -169,6 +222,10 @@ export function HouseFilter() {
     }, 300) // 300ms debounce
 
     return () => clearTimeout(timer)
+    // searchParams is intentionally omitted from dependencies.
+    // We only use it to read dates, and including it would cause the effect
+    // to run on every URL change (including pagination), resetting page to 1.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     search,
     minPrice,
@@ -178,7 +235,6 @@ export function HouseFilter() {
     guests,
     selectedTypes,
     router,
-    searchParams,
   ])
 
   // Handle handlers...
