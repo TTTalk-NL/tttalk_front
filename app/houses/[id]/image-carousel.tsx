@@ -4,22 +4,26 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Activity } from "../activities-definitions"
+import { useActivityModal } from "./activity-modal-context"
 
 interface ImageCarouselProps {
   images: Array<{ id: number; url: string }>
   title: string
   activities?: Activity[]
+  backendUrl?: string
 }
 
 export function ImageCarousel({
   images,
   title,
   activities,
+  backendUrl = "http://localhost:8080",
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [showAllActivities, setShowAllActivities] = useState(false)
+  const { openModal } = useActivityModal()
   // Track which activity items should be visible (for animation)
   const [visibleActivityItems, setVisibleActivityItems] = useState<Set<number>>(
     new Set(),
@@ -188,6 +192,7 @@ export function ImageCarousel({
                   return (
                     <div
                       key={activity.id}
+                      onClick={() => openModal(activity)}
                       className="relative aspect-4/3 rounded-lg overflow-hidden bg-gray-100 group cursor-pointer shrink-0 m-0 shadow-md hover:shadow-lg transition-all duration-500 ease-out"
                       style={{
                         width: "calc((100% - 1.5rem * 3) / 4)",
