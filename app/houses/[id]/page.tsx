@@ -101,7 +101,10 @@ export default async function HouseDetailsPage({
                         <h1 className="text-xl font-bold text-gray-900 flex-1">
                           {house.title}
                         </h1>
-                        <FavoriteButton />
+                        <FavoriteButton
+                          houseId={houseId}
+                          initialIsFavorite={house.is_favorite || false}
+                        />
                       </div>
 
                       <div className="flex items-center gap-1.5 text-gray-600 mb-2">

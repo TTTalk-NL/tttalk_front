@@ -1,12 +1,56 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { addFavorite, removeFavorite } from "../actions"
 
-export function FavoriteButton() {
-  const [isFavorite, setIsFavorite] = useState(false)
+interface FavoriteButtonProps {
+  houseId: number
+  initialIsFavorite: boolean
+}
 
-  const handleFavoriteClick = () => {
-    setIsFavorite((prev) => !prev)
+export function FavoriteButton({
+  houseId,
+  initialIsFavorite,
+}: FavoriteButtonProps) {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  // Sync with prop changes (e.g., after refresh)
+  useEffect(() => {
+    setIsFavorite(initialIsFavorite)
+  }, [initialIsFavorite])
+
+  const handleFavoriteClick = async () => {
+    if (isLoading) return
+
+    // Optimistic update
+    const previousState = isFavorite
+    setIsFavorite(!previousState)
+    setIsLoading(true)
+
+    try {
+      const result = isFavorite
+        ? await removeFavorite(houseId)
+        : await addFavorite(houseId)
+
+      if (!result.success) {
+        // Revert on error
+        setIsFavorite(previousState)
+        console.error("Error updating favorite:", result.message)
+        return
+      }
+
+      // Refresh to get updated state from backend
+      router.refresh()
+    } catch (error) {
+      console.error("Error updating favorite:", error)
+      // Revert on error
+      setIsFavorite(previousState)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

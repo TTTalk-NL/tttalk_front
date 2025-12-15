@@ -5,15 +5,22 @@ import Link from "next/link"
 import { useState, MouseEvent, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { House } from "../houses/definitions"
+import { addFavorite, removeFavorite } from "../houses/actions"
 
 interface HouseCardProps {
   house: House
 }
 
 export function HouseCard({ house }: HouseCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(house.is_favorite || false)
+  const [isLoading, setIsLoading] = useState(false)
   const [hostname, setHostname] = useState("")
   const searchParams = useSearchParams()
+
+  // Sync with prop changes (e.g., after refresh)
+  useEffect(() => {
+    setIsFavorite(house.is_favorite || false)
+  }, [house.is_favorite])
 
   /**
    * Backend base URL for images.
@@ -60,10 +67,33 @@ export function HouseCard({ house }: HouseCardProps) {
   /**
    * Handle favorite toggle without navigating
    */
-  const handleFavoriteClick = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleFavoriteClick = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsFavorite((prev) => !prev)
+    if (isLoading) return
+
+    // Optimistic update
+    const previousState = isFavorite
+    setIsFavorite(!previousState)
+    setIsLoading(true)
+
+    try {
+      const result = isFavorite
+        ? await removeFavorite(house.id)
+        : await addFavorite(house.id)
+
+      if (!result.success) {
+        // Revert on error
+        setIsFavorite(previousState)
+        console.error("Error updating favorite:", result.message)
+      }
+    } catch (error) {
+      console.error("Error updating favorite:", error)
+      // Revert on error
+      setIsFavorite(previousState)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Build URL preserving all filter parameters
@@ -138,7 +168,8 @@ export function HouseCard({ house }: HouseCardProps) {
           {/* Favorite Button */}
           <button
             onClick={handleFavoriteClick}
-            className={`absolute right-0 top-1 p-1 rounded-full transition-colors hover:bg-gray-100 ${
+            disabled={isLoading}
+            className={`absolute right-0 top-1 p-1 rounded-full transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed ${
               isFavorite ? "text-primary" : "text-gray-400 hover:text-primary"
             }`}
           >

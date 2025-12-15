@@ -53,6 +53,7 @@ export interface House {
   bathrooms: number
   images: HouseImage[]
   amenities?: Amenity[]
+  is_favorite?: boolean
 }
 
 // New Pagination Interface based on Laravel's standard pagination
