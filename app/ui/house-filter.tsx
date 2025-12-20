@@ -287,7 +287,7 @@ export function HouseFilter() {
           <input
             type="text"
             placeholder="City or Address"
-            className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-primary transition-colors"
+            className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:outline-primary transition-colors text-base"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -449,7 +449,7 @@ export function HouseFilter() {
               type="text"
               inputMode="numeric"
               placeholder="Min"
-              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-base sm:text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               value={minPrice}
               onChange={(e) => handlePriceChange(e.target.value, setMinPrice)}
             />
@@ -463,7 +463,7 @@ export function HouseFilter() {
               type="text"
               inputMode="numeric"
               placeholder="Max"
-              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:outline-primary text-base sm:text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               value={maxPrice}
               onChange={(e) => handlePriceChange(e.target.value, setMaxPrice)}
             />
